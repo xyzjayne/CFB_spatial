@@ -1,19 +1,19 @@
 import numpy as np
 
 # skims
-data_path = r"..\CTPS_Data_ModelOutputs_2040\\"
-drive_skim_PK_file = data_path + 'AM\SOV_skim.omx'
-drive_skim_OP_file = data_path + 'MD\SOV_skim.omx'
-DAT_B_skim_PK_file = data_path + 'AM\A_DAT_for_Boat_tr_skim.omx'
-DAT_B_skim_OP_file = data_path + 'MD\A_DAT_for_Boat_tr_skim.omx'
-DAT_CR_skim_PK_file = data_path + 'AM\A_DAT_for_CommRail_tr_skim.omx'
-DAT_CR_skim_OP_file = data_path + 'MD\A_DAT_for_CommRail_tr_skim.omx'
-DAT_RT_skim_PK_file = data_path + 'AM\A_DAT_for_Rapid_Transit_tr_skim.omx'
-DAT_RT_skim_OP_file = data_path + 'MD\A_DAT_for_Rapid_Transit_tr_skim.omx'
-DAT_LB_skim_PK_file = data_path + 'AM\A_DAT_for_LocalBus_tr_skim.omx'
-DAT_LB_skim_OP_file = data_path + 'MD\A_DAT_for_LocalBus_tr_skim.omx'
-WAT_skim_PK_file = data_path + 'AM\WAT_for_All_tr_skim.omx'
-WAT_skim_OP_file = data_path + 'MD\WAT_for_All_tr_skim.omx'
+data_path = r"../CTPS_Data_ModelOutputs_2040/"
+drive_skim_PK_file = data_path + 'AM/SOV_skim.omx'
+drive_skim_OP_file = data_path + 'MD/SOV_skim.omx'
+DAT_B_skim_PK_file = data_path + 'AM/A_DAT_for_Boat_tr_skim.omx'
+DAT_B_skim_OP_file = data_path + 'MD/A_DAT_for_Boat_tr_skim.omx'
+DAT_CR_skim_PK_file = data_path + 'AM/A_DAT_for_CommRail_tr_skim.omx'
+DAT_CR_skim_OP_file = data_path + 'MD/A_DAT_for_CommRail_tr_skim.omx'
+DAT_RT_skim_PK_file = data_path + 'AM/A_DAT_for_Rapid_Transit_tr_skim.omx'
+DAT_RT_skim_OP_file = data_path + 'MD/A_DAT_for_Rapid_Transit_tr_skim.omx'
+DAT_LB_skim_PK_file = data_path + 'AM/A_DAT_for_LocalBus_tr_skim.omx'
+DAT_LB_skim_OP_file = data_path + 'MD/A_DAT_for_LocalBus_tr_skim.omx'
+WAT_skim_PK_file = data_path + 'AM/WAT_for_All_tr_skim.omx'
+WAT_skim_OP_file = data_path + 'MD/WAT_for_All_tr_skim.omx'
 bike_skim_file = data_path + "2040_Bike_Skim.omx"
 walk_skim_file = data_path + "2040_Walk_Skim.omx"
 
@@ -37,8 +37,8 @@ pre_MC_trip_file = data_path + "pre_MC_trip_6_purposes.omx"
 
 # land use
 
-taz_path = r"..\LandUse\\"
-misc_path = r"..\Other\\"
+taz_path = r"../LandUse/"
+misc_path = r"../Other/"
 taz_file = misc_path + "SW_TAZ_2010.csv"
 land_use_file = taz_path + "Land_Use_2040.csv"
 taz_parking_file = taz_path + "Land_Use_Parking_Costs.csv"
@@ -80,7 +80,7 @@ SM_VMT_overhead = 1.5
 
 
 # output path
-out_path = r'..\output\\'
+out_path = r'../output//'
 
 #%% Switches for Scenarios
 scenario_switches = dict.fromkeys(["clean_vehicle" , "growth_shift" , "transit_improvements" , "active_transportation_improvements" , "TDM" , "CAV" ,"CAV_management_policy", "smart_mobility" , "smart_mobility_management_policy", "congestion_charge"])
