@@ -236,7 +236,7 @@ def active_transportation_decrease_PEV(mc_obj, factor = 0.9):
 
 
 def congestion_charge(mc_obj,amount = 5):
-	cong_zones = mc_obj.taz_lu[mc.taz_lu['BOSTON_NB'].isin(['Downtown','North End','West End','South Boston Waterfront','Chinatown','Bay Village','Back Bay'])]['ID'].values
+	cong_zones = mc_obj.taz_lu[mc_obj.taz_lu['BOSTON_NB'].isin(['Downtown','North End','West End','South Boston Waterfront','Chinatown','Bay Village','Back Bay'])]['ID'].values
 	
 	cong_charge_table = np.zeros((2730,2730))
 	cong_charge_table[np.ix_(np.where(np.logical_not(mc_obj.taz_lu['ID'].iloc[:2730].isin(cong_zones).values))[0],
@@ -247,7 +247,7 @@ def congestion_charge(mc_obj,amount = 5):
 	
 def TDM_modify_skim_trip_table(mc_obj, fare_reduction = 1, trip_reduction = 0.0035):
 	# Run after the main process has finished
-	tdm_zones = mc_obj.taz_lu[mc.taz_lu['BOSTON_NB'].isin(['Downtown','North End','West End','South Boston Waterfront','Chinatown','Bay Village','Back Bay'])]['ID'].values
+	tdm_zones = mc_obj.taz_lu[mc_obj.taz_lu['BOSTON_NB'].isin(['Downtown','North End','West End','South Boston Waterfront','Chinatown','Bay Village','Back Bay'])]['ID'].values
 	# reduce transit fare for HBW trips ending in Downtown equivalent neighborhoods
 	mc_obj.DAT_B_skim_PK['Total_Cost'][:,np.where(mc_obj.taz_lu['ID'].iloc[:2730].isin(tdm_zones).values)[0]] -= np.minimum(1,mc_obj.DAT_B_skim_PK['Total_Cost'][:,np.where(mc_obj.taz_lu['ID'].iloc[:2730].isin(tdm_zones).values)[0]])
 	mc_obj.DAT_CR_skim_PK['Total_Cost'][:,np.where(mc_obj.taz_lu['ID'].iloc[:2730].isin(tdm_zones).values)[0]] -= np.minimum(1,mc_obj.DAT_CR_skim_PK['Total_Cost'][:,np.where(mc_obj.taz_lu['ID'].iloc[:2730].isin(tdm_zones).values)[0]])
