@@ -349,8 +349,8 @@ def compute_summary_by_subregion(mc_obj,taz_fn = misc_path + "TAZ_by_interstate.
 		print('Only supports "neighboring" for towns neighboring Boston, I93, I495 or Region.')
 		return
 	
-	taz = pd.read_csv(taz_fn).sort_values(['ID_FOR_CS']).reset_index().drop(columns = ['index'])[0:2730][['TOWN','in_i95i93','in_i495']]
-	taz['BOS_AND_NEI'] = taz['TOWN'].isin([n+',MA' for n in ['WINTHROP','CHELSEA','REVERE','SOMERVILLE','CAMBRIDGE','WATERTOWN','NEWTON',
+	taz = pd.read_csv(taz_fn).sort_values(['ID_FOR_CS']).set_index('ID_FOR_CS')[['UID','TOWN','in_i95i93','in_i495']]
+	taz['BOS_AND_NEI'] = taz['TOWN'].isin([n for n in ['WINTHROP','CHELSEA','REVERE','SOMERVILLE','CAMBRIDGE','WATERTOWN','NEWTON',
               'BROOKLINE','NEEDHAM','DEDHAM','MILTON','QUINCY','BOSTON']])
 	subregion_dict = {'neighboring':'BOS_AND_NEI','i93':'in_i95i93','i495':'in_i495'}
 	
@@ -368,27 +368,27 @@ def compute_summary_by_subregion(mc_obj,taz_fn = misc_path + "TAZ_by_interstate.
 						
 		if subregion.lower() in subregion_dict:
 			field = subregion_dict[subregion.lower()]
-			boston_o_auto_vmt = vmt_table[taz['TOWN']=='BOSTON,MA',:][:, taz[field]== True]
-			boston_d_auto_vmt = vmt_table[taz[field]== True,:][:,taz['TOWN']=='BOSTON,MA']
+			boston_o_auto_vmt = vmt_table[taz[taz['TOWN']=='BOSTON'].UID.astype(int).values,:][:, taz[taz[field]== True].UID.astype(int).values]
+			boston_d_auto_vmt = vmt_table[taz[taz[field]== True].UID.astype(int).values,:][:,taz[taz['TOWN']=='BOSTON'].UID.astype(int).values]
 			town_definition = taz[taz[field]== True]
 		
 		elif subregion.lower() == 'region':
-			boston_o_auto_vmt = vmt_table[taz['TOWN']=='BOSTON,MA',:]
-			boston_d_auto_vmt = vmt_table[:][:,taz['TOWN']=='BOSTON,MA']
-			town_definition = taz	
+			boston_o_auto_vmt = vmt_table[taz[taz['TOWN']=='BOSTON'].UID.astype(int).values,:]
+			boston_d_auto_vmt = vmt_table[:][:,taz[taz['TOWN']=='BOSTON'].UID.astype(int).values]
+			town_definition = taz
 		
 		zone_vmt_daily_o = pd.DataFrame(sum_unequal_length(np.sum(boston_o_auto_vmt,axis=0), np.sum(boston_o_auto_vmt,axis=1))/2 ,columns=["VMT"])
 		zone_vmt_daily_d = pd.DataFrame(sum_unequal_length(np.sum(boston_d_auto_vmt,axis=0), np.sum(boston_d_auto_vmt,axis=1))/2 ,columns=["VMT"])
 
-		boston_within_auto_vmt = vmt_table[taz['TOWN']=='BOSTON,MA',:][:,taz['TOWN']=='BOSTON,MA']
+		boston_within_auto_vmt = vmt_table[taz[taz['TOWN']=='BOSTON'].UID.astype(int).values,:][:,taz[taz['TOWN']=='BOSTON'].UID.astype(int).values]
 		zone_vmt_daily_within = pd.DataFrame(np.sum(boston_within_auto_vmt,axis=0)/2+np.sum(boston_within_auto_vmt,axis=1)/2,columns = ['VMT'])
 
 		town_vmt_o=pd.concat([town_definition,zone_vmt_daily_o],axis=1,join='inner')
 		town_vmt_d=pd.concat([town_definition,zone_vmt_daily_d],axis=1,join='inner')
-		town_vmt_within = pd.concat([taz[taz['TOWN']=='BOSTON,MA'],zone_vmt_daily_within],axis=1,join='inner')
+		town_vmt_within = pd.concat([taz[taz['TOWN']=='BOSTON'],zone_vmt_daily_within],axis=1,join='inner')
 
-		vmt_sum_o = town_vmt_o[town_vmt_o['TOWN']=='BOSTON,MA'].groupby(['TOWN']).sum()['VMT']
-		vmt_sum_d = town_vmt_d[town_vmt_d['TOWN']=='BOSTON,MA'].groupby(['TOWN']).sum()['VMT']
+		vmt_sum_o = town_vmt_o[town_vmt_o['TOWN']=='BOSTON'].groupby(['TOWN']).sum()['VMT']
+		vmt_sum_d = town_vmt_d[town_vmt_d['TOWN']=='BOSTON'].groupby(['TOWN']).sum()['VMT']
 		vmt_sum_within = town_vmt_within.groupby(['TOWN']).sum()['VMT']
 
 		boston_portion_vmt = (vmt_sum_o + vmt_sum_d - vmt_sum_within).values[0]
@@ -412,27 +412,27 @@ def compute_summary_by_subregion(mc_obj,taz_fn = misc_path + "TAZ_by_interstate.
 		
 		if subregion.lower() in subregion_dict:
 			field = subregion_dict[subregion.lower()]
-			boston_o_auto_pmt = pmt_table[taz['TOWN']=='BOSTON,MA',:][:, taz[field]== True]
-			boston_d_auto_pmt = pmt_table[taz[field]== True,:][:,taz['TOWN']=='BOSTON,MA']
+			boston_o_auto_pmt = pmt_table[taz[taz['TOWN']=='BOSTON'].UID.astype(int).values,:][:, taz[taz[field]== True].UID.astype(int).values]
+			boston_d_auto_pmt = pmt_table[taz[taz[field]== True].UID.astype(int).values,:][:,taz[taz['TOWN']=='BOSTON'].UID.astype(int).values]
 			town_definition = taz[taz[field]== True]
 		
 		elif subregion.lower() == 'region':
-			boston_o_auto_pmt = pmt_table[taz['TOWN']=='BOSTON,MA',:]
-			boston_d_auto_pmt = pmt_table[:][:,taz['TOWN']=='BOSTON,MA']
+			boston_o_auto_pmt = pmt_table[taz[taz['TOWN']=='BOSTON'].UID.astype(int).values,:]
+			boston_d_auto_pmt = pmt_table[:][:,taz[taz['TOWN']=='BOSTON'].UID.astype(int).values]
 			town_definition = taz
 		
 		zone_pmt_daily_o = pd.DataFrame(sum_unequal_length(np.sum(boston_o_auto_pmt,axis=0), np.sum(boston_o_auto_pmt,axis=1))/2 ,columns=["PMT"])
 		zone_pmt_daily_d = pd.DataFrame(sum_unequal_length(np.sum(boston_d_auto_pmt,axis=0), np.sum(boston_d_auto_pmt,axis=1))/2 ,columns=["PMT"])
 
-		boston_within_auto_pmt = pmt_table[taz['TOWN']=='BOSTON,MA',:][:,taz['TOWN']=='BOSTON,MA']
+		boston_within_auto_pmt = pmt_table[taz[taz['TOWN']=='BOSTON'].UID.astype(int).values,:][:,taz[taz['TOWN']=='BOSTON'].UID.astype(int).values]
 		zone_pmt_daily_within = pd.DataFrame(np.sum(boston_within_auto_pmt,axis=0)/2+np.sum(boston_within_auto_pmt,axis=1)/2,columns = ['PMT'])
 
 		town_pmt_o=pd.concat([town_definition,zone_pmt_daily_o],axis=1,join='inner')
 		town_pmt_d=pd.concat([town_definition,zone_pmt_daily_d],axis=1,join='inner')
-		town_pmt_within = pd.concat([taz[taz['TOWN']=='BOSTON,MA'],zone_pmt_daily_within],axis=1,join='inner')
+		town_pmt_within = pd.concat([taz[taz['TOWN']=='BOSTON'],zone_pmt_daily_within],axis=1,join='inner')
 
-		pmt_sum_o = town_pmt_o[town_pmt_o['TOWN']=='BOSTON,MA'].groupby(['TOWN']).sum()['PMT']
-		pmt_sum_d = town_pmt_d[town_pmt_d['TOWN']=='BOSTON,MA'].groupby(['TOWN']).sum()['PMT']
+		pmt_sum_o = town_pmt_o[town_pmt_o['TOWN']=='BOSTON'].groupby(['TOWN']).sum()['PMT']
+		pmt_sum_d = town_pmt_d[town_pmt_d['TOWN']=='BOSTON'].groupby(['TOWN']).sum()['PMT']
 		pmt_sum_within = town_pmt_within.groupby(['TOWN']).sum()['PMT']
 
 		boston_portion_pmt = (pmt_sum_o + pmt_sum_d - pmt_sum_within).values[0]
@@ -454,8 +454,8 @@ def compute_summary_by_subregion(mc_obj,taz_fn = misc_path + "TAZ_by_interstate.
 						if mc_obj.table_container.get_table(purpose):
 							for mode in mc_obj.table_container.get_table(purpose)[f'{veh_own}_{peak}']:
 								trip_table = mc_obj.table_container.get_table(purpose)[f'{veh_own}_{peak}'][mode]
-								boston_ii_trips = trip_table[taz['TOWN']=='BOSTON,MA',:][:,taz['TOWN']=='BOSTON,MA'].sum()
-								trips = trip_table[taz['TOWN']=='BOSTON,MA',:][:, taz[field]== True].sum() + trip_table[taz[field]== True,:][:,taz['TOWN']=='BOSTON,MA'].sum() - boston_ii_trips
+								boston_ii_trips = trip_table[taz[taz['TOWN']=='BOSTON'].UID.astype(int).values,:][:,taz[taz['TOWN']=='BOSTON'].UID.astype(int).values].sum()
+								trips = trip_table[taz[taz['TOWN']=='BOSTON'].UID.astype(int).values,:][:, taz[taz[field]== True].UID.astype(int).values].sum() + trip_table[taz[taz[field]== True].UID.astype(int).values,:][:,taz[taz['TOWN']=='BOSTON'].UID.astype(int).values].sum() - boston_ii_trips
 								category = mode_categories[mode]
 								share_table[category]+=trips
 								
@@ -466,8 +466,8 @@ def compute_summary_by_subregion(mc_obj,taz_fn = misc_path + "TAZ_by_interstate.
 						if mc_obj.table_container.get_table(purpose):
 							for mode in mc_obj.table_container.get_table(purpose)[f'{veh_own}_{peak}']:
 								trip_table = mc_obj.table_container.get_table(purpose)[f'{veh_own}_{peak}'][mode]
-								boston_ii_trips = trip_table[taz['TOWN']=='BOSTON,MA',:][:,taz['TOWN']=='BOSTON,MA'].sum()
-								trips = trip_table[taz['TOWN']=='BOSTON,MA',:][:].sum() + trip_table[:][:,taz['TOWN']=='BOSTON,MA'].sum() - boston_ii_trips
+								boston_ii_trips = trip_table[taz[taz['TOWN']=='BOSTON'].UID.astype(int).values,:][:,taz[taz['TOWN']=='BOSTON'].UID.astype(int).values].sum()
+								trips = trip_table[taz[taz['TOWN']=='BOSTON'].UID.astype(int).values,:][:].sum() + trip_table[:][:,taz[taz['TOWN']=='BOSTON'].UID.astype(int).values].sum() - boston_ii_trips
 								category = mode_categories[mode]
 								share_table[category]+=trips
 		# normalize
@@ -495,7 +495,7 @@ def write_summary_by_subregion(mc_obj, taz_fn = misc_path+ "TAZ_by_interstate.cs
 	pmt_summary_df.to_csv(out_path + 'pmt_summary_subregions.csv')
 	mode_share_df.to_csv(out_path + 'mode_share_summary_subregions.csv')
 		
-def transit_ridership(mc_obj,MBTA_fn =misc_path + "MBTA_coverage.csv",out_path = out_path):
+def transit_ridership(mc_obj,MBTA_fn =misc_path + "MBTA_coverage.csv",out_fn = None):
 	'''
 	Summarizes transit ridership by peak period in cities and towns with MBTA subway service.
 	:param mc_obj: mode choice module object as defined in the IPython notebook
@@ -517,5 +517,8 @@ def transit_ridership(mc_obj,MBTA_fn =misc_path + "MBTA_coverage.csv",out_path =
 						ridership[peak]+=trips
 						
 	# calculate ridership
-	pd.DataFrame.from_dict({'Ridership':ridership}).to_csv(out_path + 'transit_ridership_summary.csv')
+	if out_fn is None:
+		pd.DataFrame.from_dict({'Ridership':ridership}).to_csv(out_path + 'transit_ridership_summary.csv')
+	else:
+		pd.DataFrame.from_dict({'Ridership':ridership}).to_csv(out_path + out_fn)
 	
