@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 import openmatrix as omx
+import mode_choice
 import mc_util
 from shutil import copyfile
 import config
@@ -72,8 +73,13 @@ def implement_scenarios(mc_obj):
 			print(f'"CAV" enabled: {scenario_space["CAV"]}')
 			param_out, trip_table_conventional, trip_table_CAV = CAV_input_generator(mc_obj)
 			mc_obj.param_file = param_out
-			mc1 = copy.deepcopy(mc_obj)
-			mc2 = copy.deepcopy(mc_obj)
+			mc1 = mode_choice.Mode_Choice(config, run_now = False)
+			mc2 = mode_choice.Mode_Choice(config, run_now = False)
+			# mc1 = copy.deepcopy(mc_obj) gives "cannot pickle" error
+			# mc2 = copy.deepcopy(mc_obj)
+			
+			mc1.load_input()
+			mc2.load_input()
 			
 			mc1.pre_MC_trip_table = trip_table_conventional
 			mc2.pre_MC_trip_table = trip_table_CAV
@@ -101,8 +107,13 @@ def implement_scenarios(mc_obj):
 			
 			param_out, trip_table_conventional, trip_table_CAV = CAV_input_generator(mc_obj)
 			mc_obj.param_file = param_out
-			mc1 = copy.deepcopy(mc_obj)
-			mc2 = copy.deepcopy(mc_obj)
+			mc1 = mode_choice.Mode_Choice(config, run_all = False)
+			mc2 = mode_choice.Mode_Choice(config, run_all = False)
+			# mc1 = copy.deepcopy(mc_obj)
+			# mc2 = copy.deepcopy(mc_obj)
+			
+			mc1.load_input()
+			mc2.load_input()
 			
 			mc1.pre_MC_trip_table = trip_table_conventional
 			mc2.pre_MC_trip_table = trip_table_CAV
@@ -283,9 +294,12 @@ def CAV_input_generator(mc_obj, cost_reduction = 0.50, parking_reduction = 0.75,
 	for purpose in ['HBW','HBO','NHB', 'HBSc1','HBSc2','HBSc3']:
 	# TODO: what's the CAV management policy?
 		param = pd.read_excel(param_file, sheet_name = purpose,index_col = 0)
-		param.loc['DA','Cost'] *= (1 - cost_reduction)
-		param.loc['DA','Parking'] *= (1 - parking_reduction)
-		param.loc['DA','IVTT'] *= (1 - travel_time_reduction)
+		try:
+			param.loc['DA','Cost'] *= (1 - cost_reduction)
+			param.loc['DA','Parking'] *= (1 - parking_reduction)
+			param.loc['DA','IVTT'] *= (1 - travel_time_reduction)
+		except:
+			pass
 		param.to_excel(writer1, sheet_name = purpose)
 	writer1.save()
 	
@@ -293,8 +307,8 @@ def CAV_input_generator(mc_obj, cost_reduction = 0.50, parking_reduction = 0.75,
 	trip_table_conventional = copy.deepcopy(mc_obj.pre_MC_trip_table)
 	trip_table_CAV = copy.deepcopy(mc_obj.pre_MC_trip_table)
     
-	hh_0_veh = list(filter(re.compile('.*_0Auto').match, list(trip_table.keys())))
-	hh_1_veh = list(filter(re.compile('.*_wAuto').match, list(trip_table.keys())))
+	hh_0_veh = list(filter(re.compile('.*_0Auto').match, list(trip_table_conventional.keys())))
+	hh_1_veh = list(filter(re.compile('.*_wAuto').match, list(trip_table_conventional.keys())))
 	for segment in hh_1_veh:
 		trip_table_conventional[segment] *= (1-HH_shift)
 		trip_table_CAV[segment] *= HH_shift
