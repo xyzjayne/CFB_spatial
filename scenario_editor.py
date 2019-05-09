@@ -177,7 +177,7 @@ def land_use_growth_shift(mc_obj, factor = 0.5):
 	
 def transit_time_reduction(skim, idx_list, time_saving_list, factor = 0.3):
 	for i in range(len(idx_list)):
-		skim[tuple(idx_list[i])] -= min(time_saving_list[i],skim[tuple(idex_list[i])] * factor)
+		skim[tuple(idx_list[i])] -= min(time_saving_list[i],skim[tuple(idx_list[i])] * factor)
 	return skim
 	
 def transit_modify_skim(mc_obj, TAZ_savings_file = misc_path + 'transit_TAZ_and_time_savings.csv',factor = 0.3):
@@ -227,7 +227,7 @@ def active_transportation_modify_skim(mc_obj, bike_improvement_TAZ_file = misc_p
 
 	mc_obj.bike_skim['BikeTime'], mc_obj.bike_skim['Length (Skim)'] = bike_time_distance_reduction(mc_obj.bike_skim['BikeTime'], mc_obj.bike_skim['Length (Skim)'],idx_list, factor_list)
 	
-	mc_obj.bike_skim['OneMileorLess'] = 1*(mc_obj.bike_skim['Length (Skim']<=1)
+	mc_obj.bike_skim['OneMileorLess'] = 1*(mc_obj.bike_skim['Length (Skim)']<=1)
 	
 	
 def active_transportation_decrease_PEV(mc_obj, factor = 0.9):
