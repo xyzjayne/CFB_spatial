@@ -96,7 +96,7 @@ def implement_scenarios(mc_obj):
 				for peak in ['PK','OP']:
 					for veh_own in ['0','1']:
 						for mode in mc_obj.table_container.get_table(purpose)[f'{veh_own}_{peak}']:
-							combined_table[purpose][f'{veh_own}_{peak}'][mode] = mc1.table_container.get_table(purpose)[f'{veh_own}_{peak}'][mode] + mc2.table_container.get_table(purpose)[f'{veh_own}_{peak}'][mode]
+							combined_table.get_table(purpose)[f'{veh_own}_{peak}'][mode] = mc1.table_container.get_table(purpose)[f'{veh_own}_{peak}'][mode] + mc2.table_container.get_table(purpose)[f'{veh_own}_{peak}'][mode]
 			
 			mc_obj.table_container = combined_table
 			print('Scenario run is finished. You may now call methods to mc_util to produce output summaries.')
