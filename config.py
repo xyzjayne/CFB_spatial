@@ -33,7 +33,7 @@ skim_list = ['drive_skim_PK',
 'walk_skim']
 
 # pre-MC trip table
-pre_MC_trip_file = data_path + "pre_MC_trip_6_purposes.omx"
+pre_MC_trip_file = misc_path + 'Aggregated Matrix_2040NB/pre_MC_trip_6_purposes.omx'
 
 # land use
 
