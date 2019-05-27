@@ -83,16 +83,16 @@ SM_VMT_overhead = 1.5
 out_path = r'../output//'
 
 #%% Switches for Scenarios
-scenario_switches = dict.fromkeys(["clean_vehicle" , "growth_shift" , "transit_improvements" , "active_transportation_improvements" , "TDM" , "CAV" ,"CAV_management_policy", "smart_mobility" , "smart_mobility_management_policy", "congestion_charge"])
+scenario_switches = dict.fromkeys(["clean_vehicle" , "growth_shift" , "transit_improvements" , "active_transportation_improvements" , "TDM" , "CAV" , "smart_mobility" , "congestion_charge"])
 scenario_switches['clean_vehicle'] = False
 scenario_switches['growth_shift'] = False
 scenario_switches['transit_improvements'] = False
 scenario_switches['active_transportation_improvements'] = False
 scenario_switches['TDM'] = False
 scenario_switches['CAV'] = False
-scenario_switches['CAV_management_policy'] = False
+# scenario_switches['CAV_management_policy'] = False
 scenario_switches['smart_mobility'] = False
-scenario_switches['smart_mobility_management_policy'] = False
+# scenario_switches['smart_mobility_management_policy'] = False
 scenario_switches['congestion_charge'] = False
 
 
