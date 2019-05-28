@@ -32,8 +32,6 @@ skim_list = ['drive_skim_PK',
 'bike_skim',
 'walk_skim']
 
-# pre-MC trip table
-pre_MC_trip_file = misc_path + 'Aggregated Matrix_2040NB/pre_MC_trip_6_purposes.omx'
 
 # land use
 
@@ -43,6 +41,10 @@ taz_file = misc_path + "SW_TAZ_2010.csv"
 land_use_file = taz_path + "Land_Use_2040.csv"
 taz_parking_file = taz_path + "Land_Use_Parking_Costs.csv"
 taz_zonal_file = taz_path + "TAZ_zonal_2040.csv"
+
+# pre-MC trip table
+pre_MC_trip_file = misc_path + 'Aggregated Matrix_2040NB/pre_MC_trip_6_purposes.omx'
+
 
 # model purpose
 purpose = 'HBSc1'
