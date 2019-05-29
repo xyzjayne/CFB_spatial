@@ -53,41 +53,41 @@ def expand_attr(var_vector):
 	
 def write_trip_tables(mc_obj,out_fn):
 	'''
-	This writes the resulting trip tables of mode choice to a .omx file.
+	This writes the resulting trip tables of mode choice to a .omx file. Trips of all purposes are combined.
+	Format: keys are mode_peak_vehicleownership
 	:param mc_obj: mode choice module object as defined in the IPython notebook
 	:param out_fn: path of output .omx file
 	'''
-
-	modes = mc_obj.param['mode']
 	with omx.open_file(out_fn,'w') as ttmc:
 		for pv in mc_obj.peak_veh:
-			for mode in modes:
-				ttmc[f'{mode}_{pv}'] = mc_obj.trips_by_mode[pv][mode]
+			for mode in mc_obj.table_container.modes:
+				ttmc[f'{mode}_{pv}'] = mc_obj.table_container.aggregate_by_mode_segment( mode, pv)
 	
 def display_mode_share(mc_obj):
 	'''
 	This displays a mode share summary by market segment (with / without vehicle, peak / off-peak) on the IPython notebook.
 	:param mc_obj: mode choice module object as defined in the IPython notebook
 	'''
-	modes = mc_obj.param['mode']
-	# display mode share tables
-	avg_trips_by_mode = pd.DataFrame(index=mc_obj.peak_veh,columns = modes)
-	for pv in mc_obj.peak_veh:
-		for mode in modes:
-			avg_trips_by_mode.loc[pv,mode] = mc_obj.trips_by_mode[pv][mode].sum()
-	avg_mode_share = avg_trips_by_mode.divide(avg_trips_by_mode.sum(1),axis = 0)
+	
+	mode_share = pd.DataFrame(None)
+	for purpose in ['HBW','HBO', 'NHB', 'HBSc1', 'HBSc2', 'HBSc3']:
+		mode_share = mode_share.add(pd.DataFrame({pv:{mode:(mc_obj.table_container.get_table(purpose)[pv][mode].sum()) for mode in mc_obj.table_container.get_table(purpose)[pv]} for pv in mc_obj.peak_veh}).T,
+			fill_value = 0)
+	
+	avg_mode_share = mode_share.div(mode_share.sum(1), axis = 0)
 
 	display(avg_mode_share.style.format("{:.2%}"))
 	
 	
-def write_mode_share_to_excel(mc_obj,purpose, out_excel_fn = out_path + "MC_mode_share_{}.xlsx".format(strftime("%Y%m%d_%H%M%S"))):
+def write_mode_share_to_excel(mc_obj,purpose, out_excel_fn = None):
 	'''
 	Writes mode share summary by purpose and market segment to an Excel workbook.
 	:param mc_obj: mode choice module object as defined in the IPython notebook
 	:param purpose: can be a single purpose or 'all', in which case the Excel workbook has six sheets, one for each purpose.
 	:param out_excel_fn: output Excel filename, by default in the output path defined in config.py	
 	'''
-
+	if out_excel_fn is None:
+		out_excel_fn =  mc_obj.mode_share_excel_fn
 	if purpose == 'all':
 		# check if file exists.
 		if os.path.isfile(out_excel_fn):

@@ -33,6 +33,8 @@ class Mode_Choice(object):
 		self.smart_mobility_modes = ['SM_RA','SM_SH']
 		self.start_time = time.time()
 		
+		self.mode_share_excel_fn = config.out_path + "MC_mode_share_{}.xlsx".format(time.strftime("%Y%m%d_%H%M%S"))
+		
 		if run_now == True:
 			self.load_input()
 			self.run_model(all_purposes)

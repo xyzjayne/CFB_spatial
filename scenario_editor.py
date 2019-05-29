@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import openmatrix as omx
 import mc_util
+import mode_choice
 from shutil import copyfile
 import config
 import copy
@@ -23,9 +24,10 @@ scenario_space = {
 'TDM': 'Reduce home-based work transit fare for trips entering central Boston by $1; reduce the number of HBW trips in these areas by 0.35%.'
 }
 
-switches = config.scenario_switches
+
 
 def implement_scenarios(mc_obj):
+	switches = config.scenario_switches
 	if sum(list(switches.values())) == 0: # no scenario is turned on
 		print('No scenario is enabled. Check config.')
 	else:
@@ -64,7 +66,7 @@ def implement_scenarios(mc_obj):
 		
 		elif switches['TDM'] == True and switches['CAV'] == False:
 			print(f'"TDM" enabled: {scenario_space["TDM"]}')
-			mc_obj.run_model(all_purposes = True)
+			# mc_obj.run_model(all_purposes = True)
 			TDM_run(mc_obj)
 			print('TDM run is finished. You may now call methods in mc_util to produce output summaries.')										
 		
@@ -72,8 +74,10 @@ def implement_scenarios(mc_obj):
 			print(f'"CAV" enabled: {scenario_space["CAV"]}')
 			param_out, trip_table_conventional, trip_table_CAV = CAV_input_generator(mc_obj)
 			mc_obj.param_file = param_out
-			mc1 = copy.deepcopy(mc_obj)
-			mc2 = copy.deepcopy(mc_obj)
+			mc1 = mode_choice.Mode_Choice(config, run_now = False)
+			mc2 = mode_choice.Mode_Choice(config, run_now = False)
+			mc1.load_input()
+			mc2.load_input()
 			
 			mc1.pre_MC_trip_table = trip_table_conventional
 			mc2.pre_MC_trip_table = trip_table_CAV
@@ -89,9 +93,10 @@ def implement_scenarios(mc_obj):
 			for purpose in ['HBW','HBO','NHB', 'HBSc1','HBSc2','HBSc3']:
 				for peak in ['PK','OP']:
 					for veh_own in ['0','1']:
-						for mode in mc_obj.table_container.get_table(purpose)[f'{veh_own}_{peak}']:
-							combined_table[purpose][f'{veh_own}_{peak}'][mode] = mc1.table_container.get_table(purpose)[f'{veh_own}_{peak}'][mode] + mc2.table_container.get_table(purpose)[f'{veh_own}_{peak}'][mode]
-			
+						for mode in mc1.table_container.get_table(purpose)[f'{veh_own}_{peak}']:
+							combined_table.container[purpose][f'{veh_own}_{peak}'][mode] = mc1.table_container.get_table(purpose)[f'{veh_own}_{peak}'][mode] + mc2.table_container.get_table(purpose)[f'{veh_own}_{peak}'][mode]
+				combined_table.purpose_calculated[purpose] = True
+				
 			mc_obj.table_container = combined_table
 			print('Scenario run is finished. You may now call methods to mc_util to produce output summaries.')
 			
@@ -101,8 +106,10 @@ def implement_scenarios(mc_obj):
 			
 			param_out, trip_table_conventional, trip_table_CAV = CAV_input_generator(mc_obj)
 			mc_obj.param_file = param_out
-			mc1 = copy.deepcopy(mc_obj)
-			mc2 = copy.deepcopy(mc_obj)
+			mc1 = mode_choice.Mode_Choice(config, run_now = False)
+			mc2 = mode_choice.Mode_Choice(config, run_now = False)
+			mc1.load_input()
+			mc2.load_input()
 			
 			mc1.pre_MC_trip_table = trip_table_conventional
 			mc2.pre_MC_trip_table = trip_table_CAV
@@ -126,8 +133,10 @@ def implement_scenarios(mc_obj):
 				for peak in ['PK','OP']:
 					for veh_own in ['0','1']:
 						for mode in mc_obj.table_container.get_table(purpose)[f'{veh_own}_{peak}']:
-							combined_table[purpose][f'{veh_own}_{peak}'][mode] = mc1.table_container.get_table(purpose)[f'{veh_own}_{peak}'][mode] + mc2.table_container.get_table(purpose)[f'{veh_own}_{peak}'][mode]
+							combined_table.container[purpose][f'{veh_own}_{peak}'][mode] = mc1.table_container.get_table(purpose)[f'{veh_own}_{peak}'][mode] + mc2.table_container.get_table(purpose)[f'{veh_own}_{peak}'][mode]
 			
+				combined_table.purpose_calculated[purpose] = True
+				
 			mc_obj.table_container = combined_table		
 			
 			print('TDM run is finished. You may now call methods in mc_util to produce output summaries.')			
@@ -260,14 +269,18 @@ def TDM_modify_skim_trip_table(mc_obj, fare_reduction = 1, trip_reduction = 0.00
 	mc_obj.pre_MC_trip_table['HBW_PK_wAuto'][:,np.where(mc_obj.taz_lu['ID'].iloc[:2730].isin(tdm_zones).values)[0]] *= 1-trip_reduction
 
 def TDM_run(mc_obj):
-	print('Rerunning HBW for TDM policy scenario...')
-	TDM_modify_skim_trip_table(mc_obj)
-	mc_obj.run_for_purpose('HBW')
-	print('HBW trips rerun with TDM policy scenario.')
+	# check if mc_obj contains trip tables for all purposes other than HBW
+	if all(mc_obj.table_container.purpose_calculated[purpose] for purpose in ['HBO','NHB', 'HBSc1','HBSc2','HBSc3']):
+		print('Rerunning HBW for TDM policy scenario...')
+		mc_obj.run_for_purpose('HBW')
+		print('HBW trips rerun with TDM policy scenario.')
+	else: print('Requires trip tables for all other purposes. Run full model before implementing TDM.')	
+
 	
 	
 def CAV_input_generator(mc_obj, cost_reduction = 0.50, parking_reduction = 0.75, travel_time_reduction = 0.50, HH_shift = 0.1):
 	# create param for CAV households, alternative baseline and mangement policies
+	switches = config.scenario_switches
 	if switches['smart_mobility'] == True:
 		if switches['smart_mobility_management_policy']:
 			param_file = mc_obj.config.SM_calib_param_file
@@ -284,9 +297,11 @@ def CAV_input_generator(mc_obj, cost_reduction = 0.50, parking_reduction = 0.75,
 	for purpose in ['HBW','HBO','NHB', 'HBSc1','HBSc2','HBSc3']:
 	# TODO: what's the CAV management policy?
 		param = pd.read_excel(param_file, sheet_name = purpose,index_col = 0)
-		param.loc['DA','Cost'] *= (1 - cost_reduction)
-		param.loc['DA','Parking'] *= (1 - parking_reduction)
-		param.loc['DA','IVTT'] *= (1 - travel_time_reduction)
+		try:
+			param.loc['DA','Cost'] *= (1 - cost_reduction)
+			param.loc['DA','Parking'] *= (1 - parking_reduction)
+			param.loc['DA','IVTT'] *= (1 - travel_time_reduction)
+		except: pass
 		param.to_excel(writer1, sheet_name = purpose)
 	writer1.save()
 	
@@ -294,8 +309,8 @@ def CAV_input_generator(mc_obj, cost_reduction = 0.50, parking_reduction = 0.75,
 	trip_table_conventional = copy.deepcopy(mc_obj.pre_MC_trip_table)
 	trip_table_CAV = copy.deepcopy(mc_obj.pre_MC_trip_table)
     
-	hh_0_veh = list(filter(re.compile('.*_0Auto').match, list(trip_table.keys())))
-	hh_1_veh = list(filter(re.compile('.*_wAuto').match, list(trip_table.keys())))
+	hh_0_veh = list(filter(re.compile('.*_0Auto').match, list(trip_table_conventional.keys())))
+	hh_1_veh = list(filter(re.compile('.*_wAuto').match, list(trip_table_conventional.keys())))
 	for segment in hh_1_veh:
 		trip_table_conventional[segment] *= (1-HH_shift)
 		trip_table_CAV[segment] *= HH_shift
