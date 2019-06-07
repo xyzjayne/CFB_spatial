@@ -24,7 +24,10 @@ scenario_space = {
 'TDM': 'Reduce home-based work transit fare for trips entering central Boston by $1; reduce the number of HBW trips in these areas by 0.35%.'
 }
 
-
+# default parameter values
+clean_veh_amount = 0.05
+land_use_shift_factor = 0.5
+congestion_charge_fee = 5
 
 def implement_scenarios(mc_obj):
 	switches = config.scenario_switches
@@ -33,11 +36,11 @@ def implement_scenarios(mc_obj):
 	else:
 		if switches['clean_vehicle']:
 			print(f'"Clean Vehicle" enabled: {scenario_space["Clean Vehicles"]}')
-			decrease_driving_cost(mc_obj)
+			decrease_driving_cost(mc_obj, clean_veh_amount)
 
 		if switches['growth_shift']:
 			print(f'"Land Use" enabled: {scenario_space["Land Use"]}')
-			land_use_growth_shift(mc_obj)
+			land_use_growth_shift(mc_obj, land_use_shift_factor)
 			
 		if switches['transit_improvements']:
 			print(f'"Transit Improvements" enabled: {scenario_space["Transit Improvements"]}')
@@ -50,7 +53,7 @@ def implement_scenarios(mc_obj):
 			
 		if switches['congestion_charge']:
 			print(f'"Congestion Charge" enabled: {scenario_space["Congestion Charge"]}')
-			congestion_charge(mc_obj)
+			congestion_charge(mc_obj, congestion_charge_fee)
 			
 		if switches['smart_mobility']:
 			print(f'"Smart Mobility" enabled: {scenario_space["Smart Mobility"]}')
@@ -150,16 +153,19 @@ def show_scenarios():
 		print(scenario_space[sc])
 		print('\n')
 
-def decrease_driving_cost(mc_obj, amount = 0.05):
+def decrease_driving_cost(mc_obj, amount):
 	mc_obj.cost_per_mile -= amount
 
-def land_use_growth_shift(mc_obj, factor = 0.5):
+def land_use_growth_shift(mc_obj, factor):
 	modified_2040 = misc_path + "2040_growth_shift_trip_tables.omx"
-	if os.path.isfile(modified_2040):
-		mc_obj.pre_MC_trip_table = mc_util.store_omx_as_dict(modified_2040)
-	else:
-		pre_MC_trip_file_2016 = misc_path + "pre_MC_trip_6_purposes.omx"
-		pre_MC_trip_file_2040 = misc_path + "pre_MC_trip_6_purposes.omx"
+#	if factor == 0.5:
+#	
+#		if os.path.isfile(modified_2040):
+#			mc_obj.pre_MC_trip_table = mc_util.store_omx_as_dict(modified_2040)
+#	else:
+	if True:
+		pre_MC_trip_file_2016 = misc_path + "Aggregated Matrix_2016/pre_MC_trip_6_purposes.omx"
+		pre_MC_trip_file_2040 = misc_path + "Aggregated Matrix_2040NB/pre_MC_trip_6_purposes.omx"
 		
 		dense_taz = pd.read_csv(misc_path + "Densified_TAZs.csv").sort_values('ID_FOR_CS')[['ID_FOR_CS']]
 		dense_taz['dense'] = 1
@@ -182,7 +188,7 @@ def land_use_growth_shift(mc_obj, factor = 0.5):
 				tt_new = pd.DataFrame(tt_2040).divide(pd.Series(prod_sum_2040), axis = 0).fillna(0).multiply(prod_sum_2016 + prod_sum_diff,axis = 0).values
 				fout[name] = tt_new
 
-		mc_obj.pre_MC_trip_table = mc_util.store_omx_as_dict(fout)
+		mc_obj.pre_MC_trip_table = mc_util.store_omx_as_dict(modified_2040)
 	
 def transit_time_reduction(skim, idx_list, time_saving_list, factor = 0.3):
 	for i in range(len(idx_list)):
@@ -244,7 +250,7 @@ def active_transportation_decrease_PEV(mc_obj, factor = 0.9):
     mc_obj.EgrPEV[0:447,0:447] *= factor
 
 
-def congestion_charge(mc_obj,amount = 5):
+def congestion_charge(mc_obj,amount):
 	cong_zones = mc_obj.taz_lu[mc_obj.taz_lu['BOSTON_NB'].isin(['Downtown','North End','West End','South Boston Waterfront','Chinatown','Bay Village','Back Bay'])]['ID'].values
 	
 	cong_charge_table = np.zeros((2730,2730))
